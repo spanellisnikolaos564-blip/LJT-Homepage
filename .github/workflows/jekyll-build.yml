@@ -32,12 +32,10 @@ jobs:
 
       - name: Verify homepage content and page list
         run: |
-          ruby -ryaml -rjson <<'RUBY'
-          require 'html/entities'
-
+          ruby -ryaml -rcgi <<'RUBY'
           publications = YAML.load_file('_data/publications.yml')
-          about = HTML::Entities.decode_entities(File.read('_site/index.html'))
-          publication_page = HTML::Entities.decode_entities(File.read('_site/publications/index.html'))
+          about = CGI.unescapeHTML(File.read('_site/index.html'))
+          publication_page = CGI.unescapeHTML(File.read('_site/publications/index.html'))
 
           publications.each do |publication|
             [about, publication_page].each do |page|
@@ -58,7 +56,7 @@ jobs:
           end
 
           pages = Dir.glob('_site/**/*.html').map { |path| path.sub('_site/', '') }.sort
-          raise "Unexpected额外页面: #{pages.inspect}" unless pages == ['404.html', 'index.html', 'publications/index.html']
+          raise "Unexpected additional pages: #{pages.inspect}" unless pages == ['404.html', 'index.html', 'publications/index.html']
           ['Paper Title Number', 'Your Name', 'github.io/markdown', '/talks/', '/teaching/', '/cv/'].each do |placeholder|
             [about, publication_page].each do |page|
               raise "Unremoved template content: #{placeholder}" if page.include?(placeholder)
