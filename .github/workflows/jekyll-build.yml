@@ -27,8 +27,10 @@ jobs:
           ruby-version: "3.2"
           bundler-cache: true
 
-      - name: Configure Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Build site
         run: bundle exec jekyll build --strict_front_matter
@@ -47,16 +49,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Enable GitHub Pages for this repository
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if ! gh api "repos/${GITHUB_REPOSITORY}/pages" > /dev/null 2>&1; then
-            gh api --method POST "repos/${GITHUB_REPOSITORY}/pages" \
-              --input <(printf '%s\n' '{"source":{"branch":"master","path":"/"},"build_type":"workflow"}')
-          fi
-
       - name: Deploy homepage
         id: deployment
         uses: actions/deploy-pages@v4
