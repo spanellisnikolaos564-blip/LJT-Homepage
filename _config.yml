@@ -55,9 +55,7 @@ analytics:
     tracking_id:
 
 include:
-  - .htaccess
   - _pages
-  - files
 exclude:
   - "*.sublime-project"
   - "*.sublime-workspace"
@@ -73,10 +71,13 @@ exclude:
   - CHANGELOG
   - Capfile
   - config
+  - docker-compose.yaml
   - Dockerfile
+  - files
   - Gemfile
   - Gruntfile.js
   - gulpfile.js
+  - images
   - LICENSE
   - local
   - log

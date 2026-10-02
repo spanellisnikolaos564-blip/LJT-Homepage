@@ -30,6 +30,43 @@ jobs:
         env:
           JEKYLL_ENV: production
 
+      - name: Verify homepage content and page list
+        run: |
+          ruby -ryaml -rjson <<'RUBY'
+          require 'html/entities'
+
+          publications = YAML.load_file('_data/publications.yml')
+          about = HTML::Entities.decode_entities(File.read('_site/index.html'))
+          publication_page = HTML::Entities.decode_entities(File.read('_site/publications/index.html'))
+
+          publications.each do |publication|
+            [about, publication_page].each do |page|
+              raise "Missing publication: #{publication['title']}" unless page.include?(publication['title'])
+              publication['authors'].each do |author|
+                raise "Missing author #{author}" unless page.include?(author)
+              end
+              raise "Missing publication year" unless page.include?(publication['year'].to_s)
+              raise "Missing publication venue" unless page.include?(publication['venue'])
+            end
+          end
+
+          ['Research Interests & Skills', 'Education', 'Research Experience', 'Publications', 'Contact',
+           'jliugi@connect.ust.hk', 'https://github.com/Vicent0205', '@junteng88716710',
+           'Professor Junxian He', 'Zifei Shan', 'Prof. Yu Cheng', 'Zhiyuan Honor Scholarship',
+           'MINIMAX', 'Tencent WXG', 'Shanghai AI Lab'].each do |detail|
+            raise "Missing About detail: #{detail}" unless about.include?(detail)
+          end
+
+          pages = Dir.glob('_site/**/*.html').map { |path| path.sub('_site/', '') }.sort
+          raise "Unexpected额外页面: #{pages.inspect}" unless pages == ['404.html', 'index.html', 'publications/index.html']
+          ['Paper Title Number', 'Your Name', 'github.io/markdown', '/talks/', '/teaching/', '/cv/'].each do |placeholder|
+            [about, publication_page].each do |page|
+              raise "Unremoved template content: #{placeholder}" if page.include?(placeholder)
+            end
+          end
+          puts "Verified all #{publications.length} publications on both pages and all required About sections."
+          RUBY
+
       - name: Deploy to the gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
